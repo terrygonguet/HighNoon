@@ -1,0 +1,15 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+
+html, body {
+	height: 100%;
+	width: 100%;
+}
+
+#game {
+	display: block;
+  background-color: #EEE;
+	cursor: url(resources/pointer.png) 2 2, auto;
+}
