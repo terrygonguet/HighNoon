@@ -11,4 +11,10 @@ class Enemy extends createjs.Shape {
     this.regY = 90;
   }
 
+  getShot (point) {
+    if (this.hitTest(point.x, point.y)) {
+      game.removeChild(this);
+    }
+  }
+
 }
