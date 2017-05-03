@@ -15,7 +15,7 @@ class Game extends createjs.Stage {
   }
 
   update (e) {
-    super.update(e);
+    !e.paused && super.update(e);
     // if (!e.paused) {
     //   var childs = this.children.slice(0);
     //   for (var i of childs) {

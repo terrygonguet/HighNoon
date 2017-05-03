@@ -1,31 +1,32 @@
 /* Loads all the necessary game files and handles loading screen */
 
-// Only globals allowed
-var game;
-var queue;
-var debug = false;
+/** Only globals allowed :
+ *  game, input, queue, debug
+ */
+let game;
+const queue = new createjs.LoadQueue();
+const debug = false;
 
 (function () {
-  queue = new createjs.LoadQueue();
   queue.on("complete", handleComplete, this);
   queue.on("fileload", handleFileLoad, this);
   queue.on("fileerror", handleFileError, this);
 
   // loading screen
-  var stage = new createjs.Stage("game");
-  var bar = new createjs.Shape();
+  const stage = new createjs.Stage("game");
+  const bar = new createjs.Shape();
   bar.graphics.ss(5);
   bar.set({
     x: window.innerWidth / 2,
     y: window.innerHeight / 2
   });
-  var txt = new createjs.Text("Loading", "50px Montserrat", "#000");
+  const txt = new createjs.Text("Loading", "50px Montserrat", "#000");
   txt.set({
     x: window.innerWidth / 2,
     y: window.innerHeight / 3,
     textAlign: "center"
   });
-  var nbLoaded = 0;
+  let nbLoaded = 0;
   stage.canvas.width = window.innerWidth;
   stage.canvas.height = window.innerHeight;
   stage.addChild(bar);
@@ -48,6 +49,7 @@ var debug = false;
     console.log("Loading complete.");
     stage.removeChild(bar);
     stage.removeChild(txt);
+    stage.update();
     resizeCanvas();
   }
 
