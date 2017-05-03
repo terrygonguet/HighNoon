@@ -3,7 +3,7 @@
 /** Only globals allowed :
  *  game, input, queue, debug
  */
-let game;
+var game;
 const queue = new createjs.LoadQueue();
 const debug = false;
 
@@ -38,7 +38,9 @@ const debug = false;
     // Scripts ----------------------------------
     {id: "Tools", src:"tools/tools.js"},
     {id: "Input Manager", src:"tools/input.js"},
-    {id: "Game", src:"model/game.js"}
+    {id: "Game", src:"model/game.js"},
+    {id: "Player", src:"model/player.js"},
+    {id: "Enemy", src:"model/enemy.js"}
 
     // Sprites ----------------------------------------
 
@@ -50,7 +52,11 @@ const debug = false;
     stage.removeChild(bar);
     stage.removeChild(txt);
     stage.update();
+    game = new Game("game");
     resizeCanvas();
+    game.canvas.onclick = function () {
+      game.canvas.requestPointerLock();
+    };
   }
 
   function handleFileLoad	(e) {
@@ -67,8 +73,8 @@ const debug = false;
   // to keep the canvas in full page size
   window.addEventListener('resize', resizeCanvas, false);
   function resizeCanvas() {
-    // if (!game) return;
-    // game.canvas.width = window.innerWidth;
-    // game.canvas.height = window.innerHeight;
+    if (!game) return;
+    game.canvas.width = window.innerWidth;
+    game.canvas.height = window.innerHeight;
   }
 })();

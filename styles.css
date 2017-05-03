@@ -11,5 +11,5 @@ html, body {
 #game {
 	display: block;
   background-color: #EEE;
-	cursor: url(resources/pointer.png) 2 2, auto;
+	/*cursor: url(resources/pointer.png) 2 2, auto;*/
 }

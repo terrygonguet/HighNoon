@@ -11,7 +11,16 @@ class Game extends createjs.Stage {
     createjs.Ticker.framerate = 60;
     createjs.Ticker.on("tick", this.update, this);
 
+    this.enemies      = [];
     this.tickEnabled  = true;
+    this.player       = new Player(this);
+
+    let badguy = new Enemy();
+    badguy.set({ x: 0.8 * this.canvas.width, y: 0.2 * this.canvas.height });
+    this.enemies.push(badguy);
+
+    this.addChild(badguy);
+    this.addChild(this.player);
   }
 
   update (e) {
