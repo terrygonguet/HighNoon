@@ -8,11 +8,11 @@ class Input extends createjs.EventDispatcher {
       cock      : false,
       dodgeLeft : false,
       dodgeRight: false,
-      dodgeDown : false,
-      aimUp     : false,
-      aimDown   : false,
-      aimRight  : false,
-      aimLeft   : false
+      dodgeDown : false
+      // aimUp     : false,
+      // aimDown   : false,
+      // aimRight  : false,
+      // aimLeft   : false
     };
     this.aimDelta = $V([0,0]);
     this.mouseDelta = $V([0,0]);
@@ -21,11 +21,11 @@ class Input extends createjs.EventDispatcher {
     this.bindings = {
       dodgeLeft : "q",
       dodgeRight: "e",
-      dodgeDown : "Control",
-      aimUp     : "w",
-      aimDown   : "s",
-      aimRight  : "a",
-      aimLeft   : "d"
+      dodgeDown : "w"
+      // aimUp     : "w",
+      // aimDown   : "s",
+      // aimRight  : "a",
+      // aimLeft   : "d"
     };
 
     // native events listeners
@@ -82,18 +82,18 @@ class Input extends createjs.EventDispatcher {
             event.type = "dodgeRight";
             this.keys.dodgeRight = true;
             break;
-          case this.bindings.aimUp :
-            this.keys.aimUp = true;
-            break;
-          case this.bindings.aimDown :
-            this.keys.aimDown = true;
-            break;
-          case this.bindings.aimLeft :
-            this.keys.aimLeft = true;
-            break;
-          case this.bindings.aimRight :
-            this.keys.aimRight = true;
-            break;
+          // case this.bindings.aimUp :
+          //   this.keys.aimUp = true;
+          //   break;
+          // case this.bindings.aimDown :
+          //   this.keys.aimDown = true;
+          //   break;
+          // case this.bindings.aimLeft :
+          //   this.keys.aimLeft = true;
+          //   break;
+          // case this.bindings.aimRight :
+          //   this.keys.aimRight = true;
+          //   break;
         }
         this.updateDelta();
         break;
@@ -111,18 +111,18 @@ class Input extends createjs.EventDispatcher {
             event.type = "dodgeRightU";
             this.keys.dodgeRight = false;
             break;
-          case this.bindings.aimUp :
-            this.keys.aimUp = false;
-            break;
-          case this.bindings.aimDown :
-            this.keys.aimDown = false;
-            break;
-          case this.bindings.aimLeft :
-            this.keys.aimLeft = false;
-            break;
-          case this.bindings.aimRight :
-            this.keys.aimRight = false;
-            break;
+          // case this.bindings.aimUp :
+          //   this.keys.aimUp = false;
+          //   break;
+          // case this.bindings.aimDown :
+          //   this.keys.aimDown = false;
+          //   break;
+          // case this.bindings.aimLeft :
+          //   this.keys.aimLeft = false;
+          //   break;
+          // case this.bindings.aimRight :
+          //   this.keys.aimRight = false;
+          //   break;
         }
         this.updateDelta();
         break;
@@ -143,10 +143,10 @@ class Input extends createjs.EventDispatcher {
   }
 
   updateDelta() {
-    this.aimDelta = $V([
-        Number(-this.keys.aimRight + this.keys.aimLeft),
-        Number(-this.keys.aimUp + this.keys.aimDown)
-    ]);
+    // this.aimDelta = $V([
+    //     Number(-this.keys.aimRight + this.keys.aimLeft),
+    //     Number(-this.keys.aimUp + this.keys.aimDown)
+    // ]);
   }
 
 }
