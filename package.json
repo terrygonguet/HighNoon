@@ -1,0 +1,26 @@
+{
+  "name": "highnoon",
+  "version": "0.1.0",
+  "description": "Mexican standoff sim",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.15.2",
+    "http": "^0.0.0",
+    "socket.io": "^1.7.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/terrygonguet/HighNoon.git"
+  },
+  "author": "Terry Gonguet",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/terrygonguet/HighNoon/issues"
+  },
+  "homepage": "https://github.com/terrygonguet/HighNoon#readme"
+}
