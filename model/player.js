@@ -86,8 +86,11 @@ class Player extends createjs.Container {
 
     // if the trigger is pulled and you cock tou fire immediately
     input.on("cock", function (e) {
-      if (this.state === "firing" || this.state === "drawing") {
+      if ((this.state === "firing" || this.state === "drawing")
+          && this.cooldown === Infinity)
+      {
         this.cooldown = 250;
+        createjs.Sound.play("Cocking");
       }
     }, this);
 
@@ -116,7 +119,10 @@ class Player extends createjs.Container {
         y: this.reticule.y - Math.randInt(10,30),
         cur: this.reticule.max
       });
-    }
+
+      createjs.Sound.play("Gunshot");
+    } else if (this.ammo <= 0)
+      createjs.Sound.play("Empty");
   }
 
   update (e) {

@@ -11,6 +11,7 @@ const debug = false;
   queue.on("complete", handleComplete, this);
   queue.on("fileload", handleFileLoad, this);
   queue.on("fileerror", handleFileError, this);
+  queue.installPlugin(createjs.Sound);
 
   // loading screen
   const stage = new createjs.Stage("game");
@@ -41,10 +42,14 @@ const debug = false;
     {id: "Game", src:"model/game.js"},
     {id: "Player", src:"model/player.js"},
     {id: "Enemy", src:"model/enemy.js"},
-    {id: "Trail", src:"model/trail.js"}
+    {id: "Trail", src:"model/trail.js"},
 
     // Sprites ----------------------------------------
 
+    // Sounds ----------------------------------------
+    {id: "Gunshot", src: "resources/gunshot.wav"},
+    {id: "Empty", src: "resources/empty.wav"},
+    {id: "Cocking", src: "resources/cocking.wav"}
   ];
   queue.loadManifest(queue.manifest);
 

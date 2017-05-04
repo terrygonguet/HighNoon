@@ -79,7 +79,7 @@ class Enemy extends createjs.Container {
         this.time -= e.delta;
         if (this.time <= 0) {
           this.state = "firing";
-          this.time = 200;
+          this.time = 250;
         }
         break;
       case "firing":
@@ -96,7 +96,7 @@ class Enemy extends createjs.Container {
   }
 
   fire () {
-    if (this.ammo-- > 0)
+    if (this.ammo-- > 0) {
       game.addChild(new Trail(
         this.hand.localToGlobal(0,0),
         {
@@ -104,7 +104,9 @@ class Enemy extends createjs.Container {
           y: 0.5 * game.canvas.height + Math.randInt(-400,400)
         }
       ));
-    this.time = 150;
+      this.time = 250;
+      createjs.Sound.play("Gunshot");
+    }
   }
 
   die () {
