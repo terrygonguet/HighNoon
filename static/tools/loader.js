@@ -6,7 +6,6 @@
 var game;
 const queue = new createjs.LoadQueue();
 const debug = false;
-const socket = io("http://localhost/");
 
 (function () {
   queue.on("complete", handleComplete, this);

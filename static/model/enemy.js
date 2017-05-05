@@ -1,11 +1,12 @@
 class Enemy extends createjs.Container {
 
-  constructor () {
+  constructor (role) {
     super();
 
     this.head      = new createjs.Shape();
     this.body      = new createjs.Shape();
     this.hand      = new createjs.Shape();
+    this.role      = role;
     this.width     = 60;
     this.height    = 160;
     this.state     = "aiming"; // enum { "aiming", "drawing", "firing", "dying" }
@@ -57,6 +58,8 @@ class Enemy extends createjs.Container {
       case this.hand:
         if (this.state === "dying") this.die();
         else {
+          if (game.role != 3)
+            game.socket.emit("getshot", { role: this.role });
           this.state = "dying";
           this.time = 700;
         }
@@ -64,27 +67,29 @@ class Enemy extends createjs.Container {
     }
   }
 
+  moveHandTo (handRatio) {
+    this.handRatio = handRatio;
+  }
+
+  drawGun () {
+    this.state = "drawing";
+    this.time  = 500;
+  }
+
   update (e) {
     switch (this.state) {
       case "aiming":
-        this.hand.x = -25 * this.handRatio;
-        if (this.handRatio > 0) this.handRatio -= e.delta / 10000;
-        else {
-          this.state = "drawing";
-          this.time = 500;
-        }
+        this.hand.x = (-this.width / 4) * this.handRatio;
         break;
       case "drawing":
         this.hand.y = this.height / 1.5 - (1 - this.time / 500) * 25;
         this.time -= e.delta;
         if (this.time <= 0) {
           this.state = "firing";
-          this.time = 250;
         }
         break;
       case "firing":
-        this.time -= e.delta;
-        if (this.time <= 0) this.fire();
+
         break;
       case "dying":
         this.time -= e.delta;
@@ -104,13 +109,14 @@ class Enemy extends createjs.Container {
           y: 0.5 * game.canvas.height + Math.randInt(-400,400)
         }
       ));
-      this.time = 250;
       createjs.Sound.play("Gunshot");
     }
   }
 
   die () {
     game.removeChild(this);
+    if (game.role != 3)
+      game.socket.emit("die", { role: this.role });
   }
 
 }
