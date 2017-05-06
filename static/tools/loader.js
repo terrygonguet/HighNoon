@@ -41,6 +41,7 @@ const debug = false;
     {id: "Input Manager", src:"tools/input.js"},
     {id: "Game", src:"model/game.js"},
     {id: "Player", src:"model/player.js"},
+    {id: "Spectator Player", src:"model/spectatorPlayer.js"},
     {id: "Enemy", src:"model/enemy.js"},
     {id: "Trail", src:"model/trail.js"},
 

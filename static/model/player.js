@@ -52,6 +52,8 @@ class Player extends createjs.Container {
       regX: 35
     });
 
+    this.on("tick", this.update, this);
+
     this.setHandlers();
 
     this.addChild(this.body);
@@ -61,8 +63,6 @@ class Player extends createjs.Container {
   }
 
   setHandlers () {
-    this.on("tick", this.update, this);
-
     input.on("mousemove", function (e) {
       switch (this.state) {
         case "aiming" :
@@ -83,13 +83,12 @@ class Player extends createjs.Container {
       }
     }, this);
 
-    // if the trigger is pulled and you cock tou fire immediately
+    // if the trigger is pulled and you cock you fire immediately
     input.on("cock", function (e) {
       if ((this.state === "firing" || this.state === "drawing")
           && this.cooldown === Infinity)
       {
-        this.cooldown = 250;
-        createjs.Sound.play("Cocking");
+        this.cock();
       }
     }, this);
 
@@ -109,6 +108,12 @@ class Player extends createjs.Container {
     }, this);
   }
 
+  cock () {
+    this.cooldown = 250;
+    createjs.Sound.play("Cocking");
+    if (game.role !== 3) game.socket.emit("cock");
+  }
+
   getShot () {
     this.state = "dying";
     this.time = 700;
@@ -121,11 +126,12 @@ class Player extends createjs.Container {
 
   fire () {
     this.cooldown = Infinity;
-    if (this.ammo-- > 0 && this.state === "firing") {
+    let point = { x:0, y:0 };
+    if (this.ammo > 0 && this.state === "firing") {
       let reticulePos = $V([this.reticule.x, this.reticule.y]);
       let randomAim = reticulePos.add($V([Math.randFloat(0, this.reticule.cur), 0]));
       randomAim = randomAim.rotate(Math.randFloat(0, 2 * Math.PI), reticulePos);
-      let point = new createjs.Point(randomAim.e(1), randomAim.e(2));
+      point = new createjs.Point(randomAim.e(1), randomAim.e(2));
       game.addChild(new Trail(this.hand, point));
 
       let coords = this.target.globalToLocal(point.x, point.y);
@@ -138,9 +144,18 @@ class Player extends createjs.Container {
       });
 
       createjs.Sound.play("Gunshot");
-      game.socket.emit("fire");
     } else if (this.ammo <= 0)
       createjs.Sound.play("Empty");
+
+    if (game.role !== 3)
+      game.socket.emit("fire", { x: point.x, y: point.y, empty: this.ammo <= 0 });
+    this.ammo--;
+  }
+
+  drawGun () {
+    if (game.role !== 3) game.socket.emit("draw");
+    this.state = "drawing";
+    this.time = 500;
   }
 
   update (e) {
@@ -155,9 +170,7 @@ class Player extends createjs.Container {
       case "aiming":
         // if the hand is on the gun we draw
         if (this.hand.cur.distanceFrom(this.hand.min) < 5) {
-          game.socket.emit("draw");
-          this.state = "drawing";
-          this.time = 500;
+          this.drawGun();
         }
         break;
       case "drawing":

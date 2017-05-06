@@ -1,6 +1,6 @@
 class Enemy extends createjs.Container {
 
-  constructor (role) {
+  constructor (role, hasDrawn) {
     super();
 
     this.head      = new createjs.Shape();
@@ -14,7 +14,6 @@ class Enemy extends createjs.Container {
     this.regY      = this.height / 2;
     this.time      = 0;
     this.handRatio = 1;
-    this.ammo      = 6;
 
     this.head.set({
       graphics: new createjs.Graphics()
@@ -38,8 +37,12 @@ class Enemy extends createjs.Container {
                 .ss(2)
                 .f("#C44")
                 .dc(0, 0, 7),
-      x: -this.width / 4, y: this.height / 1.5
-    })
+      x: -this.width / 3, y: this.height / 1.5
+    });
+    if (hasDrawn) {
+      this.hand.set({ x: 0, y: this.height / 1.5 - 25 });
+      this.state = "firing";
+    }
 
     this.on("tick", this.update, this);
 
@@ -71,6 +74,10 @@ class Enemy extends createjs.Container {
     this.handRatio = handRatio;
   }
 
+  cock () {
+    // createjs.Sound.play("Cocking");
+  }
+
   drawGun () {
     this.state = "drawing";
     this.time  = 500;
@@ -79,7 +86,7 @@ class Enemy extends createjs.Container {
   update (e) {
     switch (this.state) {
       case "aiming":
-        this.hand.x = (-this.width / 4) * this.handRatio;
+        this.hand.x = (-this.width / 3) * this.handRatio;
         break;
       case "drawing":
         this.hand.y = this.height / 1.5 - (1 - this.time / 500) * 25;
@@ -100,8 +107,8 @@ class Enemy extends createjs.Container {
     }
   }
 
-  fire () {
-    if (this.ammo-- > 0) {
+  fire (data) {
+    if (!data.empty) {
       game.addChild(new Trail(
         this.hand.localToGlobal(0,0),
         {
@@ -110,7 +117,9 @@ class Enemy extends createjs.Container {
         }
       ));
       createjs.Sound.play("Gunshot");
-    }
+    } else
+      createjs.Sound.play("Empty");
+
   }
 
   die () {

@@ -27,14 +27,20 @@ io.on('connection', function (socket) {
     { role },
     () => {
       if (player1 && player2 && state === "paused") {
-        io.emit("start");
+        io.emit("start", { player1: { drawn: false }, player2: { drawn: false } });
         state = "started";
+        player1.drawn = false;
+        player2.drawn = false;
         console.log("Game started");
       }
       if (state === "started")
-        socket.emit("start");
+        socket.emit("start", {
+          player1: { drawn: player1.drawn },
+          player2: { drawn: player2.drawn }
+        });
     });
   socket.role = role;
+  socket.drawn = false;
   console.log("Gave " + socket.id + " a role of " + role);
 
   socket.on("disconnect", function () {
@@ -54,11 +60,18 @@ io.on('connection', function (socket) {
   });
 
   socket.on("draw", function () {
+    socket.drawn = true;
     socket.broadcast.emit("draw", { role: socket.role });
   });
 
-  socket.on("fire", function () {
-    socket.broadcast.emit("fire", { role: socket.role });
+  socket.on("cock", function () {
+    socket.broadcast.emit("cock", { role: socket.role });
+  });
+
+  socket.on("fire", function (data) {
+    socket.broadcast.emit("fire", {
+      role: socket.role, x: data.x, y: data.y, empty: data.empty
+    });
   });
 
   socket.on("getshot", function (data) {
