@@ -118,7 +118,7 @@ class Player extends createjs.Container {
   }
 
   fumble () {
-    this.drawTime = 500;
+    this.drawTime = 750;
     this.time = this.drawTime;
     if (game.role !== 3) game.socket.emit("fumble");
   }

@@ -41,8 +41,11 @@ io.on('connection', function (socket) {
     }
     socket.join(data.room);
     console.log(socket.id + " joined room " + data.room);
-    socket.room = data.room;
-    socket.drawn = false;
+    socket.room    = data.room;
+    socket.drawn   = false;
+    socket.isDead  = false;
+    socket.ready   = false;
+    socket.score   = 0;
     if (rooms[data.room]) {
 
       let role = 3;
@@ -61,7 +64,8 @@ io.on('connection', function (socket) {
         player1: socket,
         player2: null,
         state: "paused",
-        countdown: 3
+        countdown: 3,
+        timeoutID: null
       };
       socket.role = 1;
 
@@ -71,34 +75,16 @@ io.on('connection', function (socket) {
       "joingame",
       { role: socket.role },
       () => {
-        if (rooms[socket.room].state === "started") {
+        const room = rooms[socket.room];
+        if (room.state === "started") {
           socket.emit("start", {
-            player1: { drawn: rooms[socket.room].player1.drawn },
-            player2: { drawn: rooms[socket.room].player2.drawn },
-            countdown: rooms[socket.room].countdown
+            player1: { drawn: room.player1.drawn },
+            player2: { drawn: room.player2.drawn },
+            countdown: room.countdown
           });
-        }
-        else if (rooms[socket.room].player1 &&
-                 rooms[socket.room].player2)
-        {
-          rooms[socket.room].state = "started";
-          rooms[socket.room].player1.drawn = false;
-          rooms[socket.room].player2.drawn = false;
-          io.to(socket.room).emit("start", {
-            player1: { drawn: false },
-            player2: { drawn: false },
-            countdown: 3
-          });
-          let cdInt = setInterval(() => {
-            rooms[socket.room].countdown--;
-            io.to(socket.room).emit("countdown", { countdown:rooms[socket.room].countdown });
-            if (rooms[socket.room].countdown <= 0) clearInterval(cdInt);
-          }, 1000);
-          console.log("Game started in room " + socket.room);
         }
       }
     );
-
     console.log("Gave " + socket.id + " a role of " + socket.role + " in room " + data.room);
   });
 
@@ -136,5 +122,57 @@ io.on('connection', function (socket) {
 
   socket.on("die", function (data) {
     socket.broadcast.to(socket.room).emit("die", { role: data.role });
+    const room = rooms[socket.room];
+    room["player" + data.role].isDead = true;
+
+    let id = room.timeoutID;
+    if (id) clearTimeout(id)
+    room.timeoutID = setTimeout(function () {
+      let win = 0;
+      if (!room.player1.isDead ||
+          !room.player2.isDead)
+      {
+        if (room.player1.isDead) {
+          room.player2.score++;
+          win = 2;
+        }
+        else {
+          room.player1.score++;
+          win = 1;
+        }
+      }
+      io.to(socket.room).emit("roundend", {
+        win,
+        player1: room.player1.score,
+        player2: room.player2.score
+      });
+      room.timeoutID = null;
+    }, 1000);
+  });
+
+  socket.on("ready", function (data) {
+    const room = rooms[socket.room];
+    room["player" + socket.role].ready = true;
+    if (room.player1.ready && room.player2.ready) {
+      room.player1.ready  = false;
+      room.player2.ready  = false;
+      room.player1.isDead = false;
+      room.player2.isDead = false;
+      room.player1.drawn  = false;
+      room.player2.drawn  = false;
+      room.state = "started";
+      room.countdown = 3;
+      io.to(socket.room).emit("start", {
+        player1: { drawn: false },
+        player2: { drawn: false },
+        countdown: 3
+      });
+      let cdInt = setInterval(() => {
+        room.countdown--;
+        io.to(socket.room).emit("countdown", { countdown:room.countdown });
+        if (room.countdown <= 0) clearInterval(cdInt);
+      }, 1000);
+      console.log("Game started in room " + socket.room);
+    }
   });
 });

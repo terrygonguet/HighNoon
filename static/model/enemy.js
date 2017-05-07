@@ -81,12 +81,12 @@ class Enemy extends createjs.Container {
 
   drawGun () {
     this.state = "drawing";
-    this.time  = 500;
+    this.time  = this.drawTime;
     this.hand.x = 0;
   }
 
   fumble () {
-    this.drawTime = 500;
+    this.drawTime = 750;
     this.time = this.drawTime;
   }
 

@@ -1,8 +1,8 @@
-class SpashScreen extends createjs.Container {
+class SpashScreen {
 
   constructor(pGame) {
-    super();
-    this.state   = "room"; // enum : { "room", "joined", "countdown", "started" }
+    // enum : { "room", "joined", "countdown", "started", "roundend" }
+    this.state   = "room";
     this.overlay = $("<div></div>").css({
       "width": "100%",
       "height": "100%",
@@ -17,44 +17,81 @@ class SpashScreen extends createjs.Container {
       "color": "#DDD",
       "font-family": "Montserrat"
     });
-    this.div = $("<form></form>");
-    this.txbRoom = $("<input name='room' id='room' />").attr("placeholder", "room name");
+    this.form = $("<form></form>");
+    this.txbRoom = $("<input name='room' id='room' autofocus placeholder='room name' />");
     this.txtRoom = $("<label for='room'>Join room : </label>");
+    this.btnJoin = $("<input type='submit' value='Join'/>");
+
     this.txtCountdown = $("<p>Waiting for opponent</p>").css({
       "font-size": "100px"
     }).hide();
-    this.btnJoin = $("<input type='submit' value='Join'/>");
+    this.txtScore = $("<p>Player 1 : 0 / 0 : Player2</p>").hide();
+    this.btnReady = $("<button>Ready</button>").hide();
+
     this.time    = 0;
 
-    this.div.submit(e => {
+    this.form.submit(e => {
       game.socket.emit("joinroom", { room:this.txbRoom.val() });
-      game.canvas.requestPointerLock();
       e.preventDefault();
     });
 
-    this.div
+    this.btnReady
+      .click(e => {
+        game.socket.emit("ready");
+        this.btnReady[0].disabled = true;
+        game.canvas.requestPointerLock();
+      });
+
+    this.form
       .append(this.txtRoom)
       .append(this.txbRoom)
       .append(this.btnJoin);
 
     this.overlay
-      .append(this.div)
+      .append(this.form)
       .append(this.txtCountdown)
+      .append(this.txtScore)
+      .append(this.btnReady)
       .appendTo("#wrapper");
-
-    this.on("tick", this.update, this);
 
     pGame.socket.on("start", (data) => this.start(data));
     pGame.socket.on("pause", () => this.pause());
     pGame.socket.on("joingame", () => {
       this.state = "joined";
       this.txtCountdown.show();
-      this.div.hide();
+      this.txtScore.hide();
+      if (game.role !== 3) this.btnReady.show();
+      this.form.hide();
     });
     pGame.socket.on("countdown", (data) => {
       if (data.countdown <= 0) this.reallyStart();
       else this.txtCountdown.text(data.countdown);
     });
+    pGame.socket.on("roundend", (data) => this.roundEnd(data));
+
+  }
+
+  roundEnd (data) {
+    console.log(data);
+    this.state = "roundEnd";
+    game.player.state = "countdown";
+    document.exitPointerLock();
+    if (game.role === 3) {
+      this.txtCountdown.text("PLAYER " + data.win + " WON");
+    } else if (data.win === 0) {
+      this.txtCountdown.text("DRAW");
+    } else if (data.win === game.role) {
+      this.txtCountdown.text("SURVIVED");
+    } else {
+      this.txtCountdown.text("KILLED");
+    }
+    this.txtCountdown.show();
+    this.txtScore
+      .text("Player1 : " + data.player1 + " / " + data.player2 + " : Player2")
+      .show();
+    if (game.role !== 3) this.btnReady.show()[0].disabled = false;
+    this.form.hide();
+    this.overlay.fadeIn();
   }
 
   start (data) {
@@ -74,25 +111,10 @@ class SpashScreen extends createjs.Container {
   pause () {
     this.state = "joined";
     this.txtCountdown.text("Waiting for opponent").show();
-    this.div.hide();
+    this.form.hide();
+    this.txtScore.hide();
+    this.btnReady.hide();
     this.overlay.fadeIn();
-  }
-
-  update (e) {
-    switch (this.state) {
-      case "room":
-
-        break;
-      case "joined":
-
-        break;
-      case "countdown":
-
-        break;
-      case "started":
-
-        break;
-    }
   }
 
 }

@@ -19,7 +19,6 @@ class Game extends createjs.Stage {
     this.roletxt      = new createjs.Text("", "20px Montserrat", "#000");
 
     this.addChildAt(this.roletxt, 0);
-    this.addChildAt(this.splash, 0);
 
     this.setHandlers();
   }
