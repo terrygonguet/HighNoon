@@ -14,6 +14,7 @@ class Enemy extends createjs.Container {
     this.regY      = this.height / 2;
     this.time      = 0;
     this.handRatio = 1;
+    this.drawTime  = 250;
 
     this.head.set({
       graphics: new createjs.Graphics()
@@ -81,6 +82,12 @@ class Enemy extends createjs.Container {
   drawGun () {
     this.state = "drawing";
     this.time  = 500;
+    this.hand.x = 0;
+  }
+
+  fumble () {
+    this.drawTime = 500;
+    this.time = this.drawTime;
   }
 
   update (e) {
@@ -89,7 +96,7 @@ class Enemy extends createjs.Container {
         this.hand.x = (-this.width / 3) * this.handRatio;
         break;
       case "drawing":
-        this.hand.y = this.height / 1.5 - (1 - this.time / 500) * 25;
+        this.hand.y = this.height / 1.5 - (1 - this.time / this.drawTime) * 25;
         this.time -= e.delta;
         if (this.time <= 0) {
           this.state = "firing";

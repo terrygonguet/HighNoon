@@ -7,14 +7,19 @@ class Game extends createjs.Stage {
   constructor (canvasName) {
     super(canvasName);
 
-    this.enemies      = [];
     this.tickEnabled  = true;
     this.player       = null;
     this.opponent     = null;
     this.role         = 0;
     this.netcodetime  = 0;
-    this.netcoderate  = 10;
+    this.netcoderate  = 15;
+    this.reallyStarted= false;
     this.socket       = io("http://localhost/");
+    this.splash       = new SpashScreen(this);
+    this.roletxt      = new createjs.Text("", "20px Montserrat", "#000");
+
+    this.addChildAt(this.roletxt, 0);
+    this.addChildAt(this.splash, 0);
 
     this.setHandlers();
   }
@@ -26,16 +31,12 @@ class Game extends createjs.Stage {
 
     this.socket.on("joingame", (data, callback) => {
       this.role = data.role;
+      this.roletxt.text = "You are " + (this.role<=2 ? "Player "+this.role : "spectator");
       callback();
     });
 
-    this.socket.on("leftgame", data => {
-      if (data.role <= 2) {
-        this.stop();
-      }
-    });
-
     this.socket.on("start", (data) => this.start(data));
+
     this.socket.on("pause", () => this.stop());
 
     this.socket.on("handmove", (data) => {
@@ -74,6 +75,15 @@ class Game extends createjs.Stage {
       }
     });
 
+    this.socket.on("fumble", (data) => {
+      if (!this.player || !this.opponent) return;
+      if (this.player.role === data.role) {
+        this.player.fumble(data);
+      } else if (this.opponent.role === data.role) {
+        this.opponent.fumble(data);
+      }
+    });
+
     this.socket.on("getshot", (data) => {
       if (!this.player || !this.opponent) return;
       if (this.player.role === data.role) {
@@ -97,13 +107,14 @@ class Game extends createjs.Stage {
     this.removeChild(this.opponent);
     this.removeChild(this.player);
     if (this.role <= 2) {
-      this.player = new Player(this, this.role);
+      this.player = new Player(this.role);
       let oppoRole = this.role === 1 ? 2 : 1;
       this.opponent = new Enemy(oppoRole, data["player" + oppoRole].drawn);
     } else {
-      this.player = new SpectatorPlayer(this, data.player1.drawn);
+      this.player = new SpectatorPlayer(data.player1.drawn);
       this.opponent = new Enemy(2, data.player2.drawn);
     }
+    if (this.reallyStarted) this.player.state = "aiming";
     this.opponent.set({ x: 0.8 * this.canvas.width, y: 0.2 * this.canvas.height });
     this.addChild(this.opponent);
     this.addChild(this.player);
@@ -121,16 +132,10 @@ class Game extends createjs.Stage {
       this.netcodetime = 0;
     }
     !e.paused && super.update(e);
-    // if (!e.paused) {
-    //   var childs = this.children.slice(0);
-    //   for (var i of childs) {
-    //     i.dispatchEvent(new createjs.Event("frameTick").set({delta: e.delta}));
-    //   }
-    // }
   }
 
   addChild (child) {
-    super.addChild(child);
+    super.addChildAt(child, this.getChildIndex(this.roletxt));
   }
 
   removeChild (child) {

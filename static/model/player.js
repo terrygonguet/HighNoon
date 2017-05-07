@@ -1,11 +1,11 @@
 class Player extends createjs.Container {
 
-  constructor (pGame, role) {
+  constructor (role) {
     super();
 
-    this.game        = pGame;
     this.target      = null;
-    this.state       = "aiming"; // enum { "aiming", "drawing", "firing", "dying" }
+    // enum { "countdown", "aiming", "drawing", "firing", "dying" }
+    this.state       = "countdown";
     this.role        = role;
     this.time        = 0;
     this.ammo        = 6;
@@ -15,6 +15,7 @@ class Player extends createjs.Container {
     this.hand        = new createjs.Shape(); // placeholders
     this.gun         = new createjs.Shape();
     this.handRatio   = 1;
+    this.drawTime    = 250;
 
     this.reticule.set({
       x: 0, y: 0, visible: false,
@@ -26,10 +27,10 @@ class Player extends createjs.Container {
                 .s("#000")
                 .ss(2)
                 .f("#C68E17")
-                .r(0, 0, 0.2 * pGame.canvas.width, pGame.canvas.height),
+                .r(0, 0, 0.2 * game.canvas.width, game.canvas.height),
       x:0, y:0
     });
-    let hand = $V([0.2 * pGame.canvas.width + 350, 0.6 * pGame.canvas.height]);
+    let hand = $V([0.2 * game.canvas.width + 350, 0.6 * game.canvas.height]);
     this.hand.set({
       graphics: new createjs.Graphics()
                 .s("#000")
@@ -38,7 +39,7 @@ class Player extends createjs.Container {
                 .dc(0, 0, 75),
       x: hand.e(1), y: hand.e(2),
       cur: hand.dup(), max: hand.dup(), dist: 0,
-      min: $V([0.2 * pGame.canvas.width, 0.6 * pGame.canvas.height])
+      min: $V([0.2 * game.canvas.width, 0.6 * game.canvas.height])
     });
     this.hand.dist = this.hand.max.distanceFrom(this.hand.min);
     this.gun.set({
@@ -48,7 +49,7 @@ class Player extends createjs.Container {
                 .f("gray")
                 .dc(35, 0, 35)
                 .r(0, 0, 70, 250),
-      x: 0.2 * pGame.canvas.width, y: 0.6 * pGame.canvas.height,
+      x: 0.2 * game.canvas.width, y: 0.6 * game.canvas.height,
       regX: 35
     });
 
@@ -66,12 +67,12 @@ class Player extends createjs.Container {
     input.on("mousemove", function (e) {
       switch (this.state) {
         case "aiming" :
-          this.hand.cur.setElements([
-            (input.mouseDelta.e(1) + this.hand.cur.e(1)).clamp(
-              this.hand.min.e(1), this.hand.max.e(1)
-            ), this.hand.cur.e(2)
-          ]);
+          let handx = input.mouseDelta.e(1) + this.hand.cur.e(1);
+          if (handx - this.hand.min.e(1) < -25) {
+            this.fumble();
+          }
           this.hand.set({ x: this.hand.cur.e(1), y: this.hand.cur.e(2) });
+          this.hand.cur.elements[0] = handx.clamp(this.hand.min.e(1), this.hand.max.e(1));
           this.handRatio = this.hand.cur.distanceFrom(this.hand.min) / this.hand.dist;
           break;
         case "firing" :
@@ -85,7 +86,7 @@ class Player extends createjs.Container {
 
     // if the trigger is pulled and you cock you fire immediately
     input.on("cock", function (e) {
-      if ((this.state === "firing" || this.state === "drawing")
+      if ((this.state === "firing" || this.state === "dying")
           && this.cooldown === Infinity)
       {
         this.cock();
@@ -94,12 +95,14 @@ class Player extends createjs.Container {
 
     // if the gun is cocked you fire
     input.on("fire", function (e) {
-      if ((this.state === "firing" || this.state === "drawing") && this.cooldown <= 0) {
+      if ((this.state === "firing" || this.state === "dying")
+          && this.cooldown <= 0)
+      {
         this.fire();
       }
     }, this);
 
-    this.game.on("netcodeupdate", function (e) {
+    game.on("netcodeupdate", function (e) {
       switch (this.state) {
         case "aiming":
           game.socket.emit("handmove", this.handRatio);
@@ -112,6 +115,12 @@ class Player extends createjs.Container {
     this.cooldown = 250;
     createjs.Sound.play("Cocking");
     if (game.role !== 3) game.socket.emit("cock");
+  }
+
+  fumble () {
+    this.drawTime = 500;
+    this.time = this.drawTime;
+    if (game.role !== 3) game.socket.emit("fumble");
   }
 
   getShot () {
@@ -155,7 +164,20 @@ class Player extends createjs.Container {
   drawGun () {
     if (game.role !== 3) game.socket.emit("draw");
     this.state = "drawing";
-    this.time = 500;
+    this.time = this.drawTime;
+  }
+
+  animate () {
+    // pointless gross animations
+    let dir = $V([0.5 * game.canvas.width, 0.3 * game.canvas.height]);
+    let temp = dir.subtract(this.hand.min).x(1 - this.time / this.drawTime);
+    temp = this.hand.min.add(temp);
+    this.hand.set({ x: temp.e(1), y: temp.e(2) });
+    this.gun.set({
+      x: temp.e(1), y: temp.e(2),
+      rotation: (1 - this.time / this.drawTime) * -125,
+      scaleY: this.time / this.drawTime
+    });
   }
 
   update (e) {
@@ -175,18 +197,7 @@ class Player extends createjs.Container {
         break;
       case "drawing":
         this.time -= e.delta;
-
-        // pointless gross animations
-        let dir = $V([0.5 * game.canvas.width, 0.4 * game.canvas.height]);
-        let temp = dir.subtract(this.hand.min).x(1 - this.time / 500);
-        temp = this.hand.min.add(temp);
-        this.hand.set({ x: temp.e(1), y: temp.e(2) });
-        this.gun.set({
-          x: temp.e(1), y: temp.e(2),
-          rotation: (1 - this.time / 500) * -125,
-          scaleY: this.time / 500
-        });
-
+        this.animate();
         if (this.time <= 0) {
           // randomize where the reticule appears
           let reticulePos = $V([this.reticule.x, this.reticule.y]);
