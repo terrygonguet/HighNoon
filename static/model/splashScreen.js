@@ -21,6 +21,7 @@ class SpashScreen {
     this.txbRoom = $("<input name='room' id='room' autofocus placeholder='room name' />");
     this.txtRoom = $("<label for='room'>Join room : </label>");
     this.btnJoin = $("<input type='submit' value='Join'/>");
+    this.btnTuto = $("<button>Tutorial</button>");
 
     this.txtCountdown = $("<p>Waiting for opponent</p>").css({
       "font-size": "100px"
@@ -35,17 +36,19 @@ class SpashScreen {
       e.preventDefault();
     });
 
+    this.btnTuto.click(e => {
+      e.preventDefault();
+      game.player = new Tutorial();
+    });
+
     this.btnReady
-      .click(e => {
-        game.socket.emit("ready");
-        this.btnReady[0].disabled = true;
-        game.canvas.requestPointerLock();
-      });
+      .click(e => this.ready());
 
     this.form
       .append(this.txtRoom)
       .append(this.txbRoom)
-      .append(this.btnJoin);
+      .append(this.btnJoin)
+      .append(this.btnTuto);
 
     this.overlay
       .append(this.form)
@@ -56,19 +59,28 @@ class SpashScreen {
 
     pGame.socket.on("start", (data) => this.start(data));
     pGame.socket.on("pause", () => this.pause());
-    pGame.socket.on("joingame", () => {
-      this.state = "joined";
-      this.txtCountdown.show();
-      this.txtScore.hide();
-      if (game.role !== 3) this.btnReady.show();
-      this.form.hide();
-    });
-    pGame.socket.on("countdown", (data) => {
-      if (data.countdown <= 0) this.reallyStart();
-      else this.txtCountdown.text(data.countdown);
-    });
+    pGame.socket.on("joingame", () => this.joingame());
+    pGame.socket.on("countdown", (data) => this.countdown(data));
     pGame.socket.on("roundend", (data) => this.roundEnd(data));
+  }
 
+  ready () {
+    game.socket.emit("ready");
+    this.btnReady[0].disabled = true;
+    game.canvas.requestPointerLock();
+  }
+
+  joingame () {
+    this.state = "joined";
+    this.txtCountdown.show();
+    this.txtScore.hide();
+    if (game.role !== 3) this.btnReady.show();
+    this.form.hide();
+  }
+
+  countdown (data) {
+    if (data.countdown <= 0) this.reallyStart();
+    else this.txtCountdown.text(data.countdown);
   }
 
   roundEnd (data) {

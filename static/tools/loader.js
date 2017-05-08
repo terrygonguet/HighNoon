@@ -43,6 +43,7 @@ const debug = false;
     {id: "SplashScreen", src:"model/splashScreen.js"},
     {id: "Player", src:"model/player.js"},
     {id: "Spectator Player", src:"model/spectatorPlayer.js"},
+    {id: "Tutorial Player", src:"model/tutorial.js"},
     {id: "Enemy", src:"model/enemy.js"},
     {id: "Trail", src:"model/trail.js"},
 
