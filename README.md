@@ -9,4 +9,3 @@ Yet another game I might finish
 4. `node server.js`
 5. <http://localhost/>
 
-The game will start when two people join the page. Further people joining will be spectators.
