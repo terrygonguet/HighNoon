@@ -153,7 +153,8 @@ io.on('connection', function (socket) {
   socket.on("ready", function (data) {
     const room = rooms[socket.room];
     room["player" + socket.role].ready = true;
-    if (room.player1.ready && room.player2.ready) {
+    if (room.player1 && room.player1.ready &&
+        room.player2 && room.player2.ready) {
       room.player1.ready  = false;
       room.player2.ready  = false;
       room.player1.isDead = false;
