@@ -14,7 +14,7 @@ class Game extends createjs.Stage {
     this.netcodetime  = 0;
     this.netcoderate  = 15;
     this.reallyStarted= false;
-    this.socket       = io("http://localhost/");
+    this.socket       = io(location.origin);
     this.splash       = new SpashScreen(this);
     this.roletxt      = new createjs.Text("", "20px Montserrat", "#000");
 
