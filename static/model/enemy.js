@@ -9,6 +9,7 @@ class Enemy extends createjs.Container {
     this.role      = role;
     this.width     = 60;
     this.height    = 160;
+    this.dodged    = false;
     this.state     = "aiming"; // enum { "aiming", "drawing", "firing", "dying" }
     this.regX      = this.width / 2;
     this.regY      = this.height / 2;
@@ -73,6 +74,18 @@ class Enemy extends createjs.Container {
 
   moveHandTo (handRatio) {
     this.handRatio = handRatio;
+  }
+
+  dodge (side) {
+    this.drawTime = 600;
+    if (this.state !== "firing") this.drawGun();
+    let dir = (side === "left" ? 1 : -1); // reversed for the enemy
+    this.dodged = this.on("tick", function (e) {
+      this.x += dir * (e.delta/1000) * game.canvas.width * 0.2;
+      this.y += (e.delta/1000) * this.height / 2;
+      this.rotation += dir * 90 * (e.delta/1000);
+      if (Math.abs(this.rotation) >= 90) this.off("tick", this.dodged);
+    }, this);
   }
 
   cock () {

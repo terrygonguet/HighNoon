@@ -110,6 +110,10 @@ io.on('connection', function (socket) {
     socket.broadcast.to(socket.room).emit("fumble", { role: socket.role });
   });
 
+  socket.on("dodge", function (data) {
+    socket.broadcast.to(socket.room).emit("dodge", { role: socket.role, side: data.side });
+  });
+
   socket.on("fire", function (data) {
     socket.broadcast.to(socket.room).emit("fire", {
       role: socket.role, x: data.x, y: data.y, empty: data.empty

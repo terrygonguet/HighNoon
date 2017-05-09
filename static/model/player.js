@@ -10,12 +10,17 @@ class Player extends createjs.Container {
     this.time        = 0;
     this.ammo        = 6;
     this.cooldown    = Infinity;
+    this.dodged      = false;
     this.reticule    = new createjs.Shape();
     this.body        = new createjs.Shape(); // gonna be an animation
     this.hand        = new createjs.Shape(); // placeholders
     this.gun         = new createjs.Shape();
     this.handRatio   = 1;
     this.drawTime    = 250;
+    this.regY        = game.canvas.height / 2;
+    this.regX        = game.canvas.width * 0.1;
+    this.y           = game.canvas.height / 2;
+    this.x           = game.canvas.width * 0.1;
 
     this.reticule.set({
       x: 0, y: 0, visible: false,
@@ -53,12 +58,14 @@ class Player extends createjs.Container {
       regX: 35
     });
 
+    // not in setHandlers() because they need to be there for all subclasses
     this.on("tick", this.update, this);
+    this.on("remove", () => game.removeChild(this.reticule));
 
     this.setHandlers();
 
     this.addChild(this.body);
-    this.addChild(this.reticule);
+    game.addChildAt(this.reticule, game.children.length); // needs to be ON TOP
     this.addChild(this.gun);
     this.addChild(this.hand);
   }
@@ -102,6 +109,9 @@ class Player extends createjs.Container {
       }
     }, this);
 
+    input.on("dodgeLeft", e => this.dodge("left", e));
+    input.on("dodgeRight", e => this.dodge("right", e));
+
     game.on("netcodeupdate", function (e) {
       switch (this.state) {
         case "aiming":
@@ -109,6 +119,22 @@ class Player extends createjs.Container {
           break;
       }
     }, this);
+  }
+
+  dodge (side, e) {
+    if (this.state !== "countdown" && this.state !== "dying" && !this.dodged) {
+      if (game.role !== 3) game.socket.emit("dodge", { side });
+      this.drawTime = 600;
+      if (this.state !== "firing") this.drawGun();
+      let dir = (side === "right" ? 1 : -1);
+      this.dodged = this.on("tick", function (e) {
+        this.x += dir * (e.delta/1000) * game.canvas.width * 0.5;
+        this.y += (e.delta/1000) * game.canvas.height / 2;
+        this.rotation += dir * 90 * (e.delta/1000);
+        this.reticule.cur = this.reticule.max;
+        if (Math.abs(this.rotation) >= 90) this.off("tick", this.dodged);
+      }, this);
+    }
   }
 
   cock () {
@@ -141,7 +167,7 @@ class Player extends createjs.Container {
       let randomAim = reticulePos.add($V([Math.randFloat(0, this.reticule.cur), 0]));
       randomAim = randomAim.rotate(Math.randFloat(0, 2 * Math.PI), reticulePos);
       point = new createjs.Point(randomAim.e(1), randomAim.e(2));
-      game.addChild(new Trail(this.hand, point));
+      game.addChild(new Trail(this.hand.localToGlobal(0,0), point));
 
       let coords = this.target.globalToLocal(point.x, point.y);
       this.target.getShot(coords);

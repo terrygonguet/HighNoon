@@ -100,11 +100,20 @@ class Game extends createjs.Stage {
         this.opponent.die();
       }
     });
+
+    this.socket.on("dodge", (data) => {
+      if (!this.player || !this.opponent) return;
+      if (this.player.role === data.role) {
+        this.player.dodge(data.side);
+      } else if (this.opponent.role === data.role) {
+        this.opponent.dodge(data.side);
+      }
+    });
   }
 
   start (data) {
-    this.removeChild(this.opponent);
     this.removeChild(this.player);
+    this.removeChild(this.opponent);
     if (this.role <= 2) {
       this.player = new Player(this.role);
       let oppoRole = this.role === 1 ? 2 : 1;
