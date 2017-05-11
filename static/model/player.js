@@ -60,7 +60,7 @@ class Player extends createjs.Container {
 
     // not in setHandlers() because they need to be there for all subclasses
     this.on("tick", this.update, this);
-    this.on("remove", () => game.removeChild(this.reticule));
+    this.on("removed", () => game.removeChild(this.reticule));
 
     this.setHandlers();
 

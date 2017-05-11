@@ -17,17 +17,17 @@ class SpashScreen {
       "color": "#DDD",
       "font-family": "Montserrat"
     });
-    this.form = $("<form></form>");
+    this.form = $("<form></form>").addClass("joinForm mainmenu everything");
     this.txbRoom = $("<input name='room' id='room' autofocus placeholder='room name' />");
     this.txtRoom = $("<label for='room'>Join room : </label>");
     this.btnJoin = $("<input type='submit' value='Join'/>");
-    this.btnTuto = $("<button>Tutorial</button>");
+    this.btnTuto = $("<button>Tutorial</button>").addClass("tutorial mainmenu everything");
 
     this.txtCountdown = $("<p>Waiting for opponent</p>").css({
       "font-size": "100px"
-    }).hide();
-    this.txtScore = $("<p>Player 1 : 0 / 0 : Player2</p>").hide();
-    this.btnReady = $("<button>Ready</button>").hide();
+    }).hide().addClass("countdown endgame everything");
+    this.txtScore = $("<p>Player 1 : 0 / 0 : Player2</p>").hide().addClass("score endgame verything");
+    this.btnReady = $("<button>Ready</button>").hide().addClass("ready endgame everything");
 
     this.time    = 0;
 
@@ -72,10 +72,9 @@ class SpashScreen {
 
   joingame () {
     this.state = "joined";
-    this.txtCountdown.show();
-    this.txtScore.hide();
-    if (game.role !== 3) this.btnReady.show();
-    this.form.hide();
+    $(".everything").hide();
+    $(".countdown").show();
+    if (game.role !== 3) $(".ready").show();
   }
 
   countdown (data) {
@@ -122,10 +121,9 @@ class SpashScreen {
 
   pause () {
     this.state = "joined";
-    this.txtCountdown.text("Waiting for opponent").show();
-    this.form.hide();
-    this.txtScore.hide();
-    this.btnReady.hide();
+    this.txtCountdown.text("Waiting for opponent");
+    $(".everything").hide();
+    $(".countdown .ready").show();
     this.overlay.fadeIn();
   }
 
